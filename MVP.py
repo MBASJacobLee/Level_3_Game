@@ -30,24 +30,9 @@ class Menu_View(arcade.View):
                          arcade.color.GRAY, font_size=20, anchor_x="center")
 
     def on_mouse_press(self, _x, _y, _button, _modifiers):
-        """window = MyGame()
-        window.setup()
-        arcade.run()
-        game = MyGame()
-        game.setup()
-        self.window.show_view(game)"""
-
-        '''game_view = MyGame()
-        #game_view.setup()
-        self.window.show_view(game_view)'''
-        '''game = MyGame()
-        self.window.setup(game)'''
-
         game_view = MyGame()
         game_view.setup()
         self.window.show_view(game_view)
-        # This works but has bug
-        # game_view.setup()
 
 
 class MyGame(arcade.View):

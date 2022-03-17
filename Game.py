@@ -31,11 +31,29 @@ PLAYER_START_Y = SPRITE_PIXEL_SIZE * TILE_SCALING * 1
 RIGHT_FACING = 0
 LEFT_FACING = 1
 
+LAYER_NAME_FLAG = "Flag"
 LAYER_NAME_PLATFORMS = "Platforms"
 LAYER_NAME_COINS = "Coins"
 LAYER_NAME_BACKGROUND = "Background"
 LAYER_NAME_LADDERS = "Ladders"
 LAYER_NAME_PLAYER = "Player"
+
+
+class Menu_View(arcade.View):
+    def on_show(self):
+        arcade.set_background_color(arcade.color.WHITE)
+
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("Menu Screen", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                         arcade.color.BLACK, font_size=50, anchor_x="center")
+        arcade.draw_text("Click to advance.", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 75,
+                         arcade.color.GRAY, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        game_view = MyGame()
+        game_view.setup()
+        self.window.show_view(game_view)
 
 
 def load_texture_pair(filename):
@@ -142,7 +160,7 @@ class PlayerCharacter(arcade.Sprite):
         ]
 
 
-class MyGame(arcade.Window):
+class MyGame(arcade.View):
     """
     Main application class.
     """
@@ -153,7 +171,7 @@ class MyGame(arcade.Window):
         """
 
         # Call the parent class and set up the window
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__()
 
         # Set the path to start with this program
         file_path = os.path.dirname(os.path.abspath(__file__))
@@ -188,6 +206,7 @@ class MyGame(arcade.Window):
 
         # Keep track of the score
         self.score = 0
+        self.Level = 1
 
         # Load sounds
         self.collect_coin_sound = arcade.load_sound(":resources:sounds/coin1.wav")
@@ -200,11 +219,11 @@ class MyGame(arcade.Window):
         """Set up the game here. Call this function to restart the game."""
 
         # Setup the Cameras
-        self.camera = arcade.Camera(self.width, self.height)
-        self.gui_camera = arcade.Camera(self.width, self.height)
+        self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.gui_camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 
         # Map name
-        map_name = "Level_1.json"
+        map_name = f"Level_{self.Level}.JSON"
 
         # Layer Specific Options for the Tilemap
         layer_options = {
@@ -291,8 +310,8 @@ class MyGame(arcade.Window):
             if self.physics_engine.is_on_ladder():
                 self.player_sprite.change_y = PLAYER_MOVEMENT_SPEED
             elif (
-                self.physics_engine.can_jump(y_distance=10)
-                and not self.jump_needs_reset
+                    self.physics_engine.can_jump(y_distance=10)
+                    and not self.jump_needs_reset
             ):
                 self.player_sprite.change_y = PLAYER_JUMP_SPEED
                 self.jump_needs_reset = True
@@ -348,7 +367,7 @@ class MyGame(arcade.Window):
     def center_camera_to_player(self):
         screen_center_x = self.player_sprite.center_x - (self.camera.viewport_width / 2)
         screen_center_y = self.player_sprite.center_y - (
-            self.camera.viewport_height / 2
+                self.camera.viewport_height / 2
         )
         if screen_center_x < 0:
             screen_center_x = 0
@@ -382,11 +401,19 @@ class MyGame(arcade.Window):
             delta_time, [LAYER_NAME_COINS, LAYER_NAME_BACKGROUND, LAYER_NAME_PLAYER]
         )
 
-
+        flag_hit_list = arcade.check_for_collision_with_list(
+            self.player_sprite, self.scene[LAYER_NAME_FLAG]
+        )
         # See if we hit any coins
         coin_hit_list = arcade.check_for_collision_with_list(
             self.player_sprite, self.scene[LAYER_NAME_COINS]
         )
+
+        for flags in flag_hit_list:
+            flags.remove_from_sprite_lists()
+            self.Level = self.Level + 1
+            print(self.Level)
+            self.setup()
 
         # Loop through each coin we hit (if any) and remove it
         for coin in coin_hit_list:
@@ -408,8 +435,9 @@ class MyGame(arcade.Window):
 
 def main():
     """Main function"""
-    window = MyGame()
-    window.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT)
+    menu = Menu_View()
+    window.show_view(menu)
     arcade.run()
 
 
