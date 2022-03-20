@@ -215,6 +215,12 @@ class MyGame(arcade.View):
 
         arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
 
+    def died(self, message):
+        print(message)
+        self.player_sprite.change_y = PLAYER_JUMP_SPEED
+        self.player_sprite.center_x = 128
+        self.player_sprite.center_y = 300
+
     def setup(self):
         """Set up the game here. Call this function to restart the game."""
 
@@ -369,10 +375,10 @@ class MyGame(arcade.View):
         screen_center_y = self.player_sprite.center_y - (
                 self.camera.viewport_height / 2
         )
-        if screen_center_x < 0:
-            screen_center_x = 0
-        if screen_center_y < 0:
-            screen_center_y = 0
+        if screen_center_x < -20:
+            screen_center_x = -20
+        if screen_center_y < -20:
+            screen_center_y = -20
         player_centered = screen_center_x, screen_center_y
 
         self.camera.move_to(player_centered, 0.2)
@@ -428,6 +434,9 @@ class MyGame(arcade.View):
             # Remove the coin
             coin.remove_from_sprite_lists()
             arcade.play_sound(self.collect_coin_sound)
+
+        if self.player_sprite.center_y < -1000:
+            self.died("You fell out of the world")
 
         # Position the camera
         self.center_camera_to_player()
